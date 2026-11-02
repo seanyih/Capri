@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Capri installer (Linux). Installs the binary as `capri`, seeds ~/.config/capri/capri.json and installs Capri's skills.
+# Capri installer (Linux and macOS). Installs the binary as `capri`, seeds ~/.config/capri/capri.json and installs Capri's skills.
 set -euo pipefail
 APP=capri
 REPO=seanyih/Capri
@@ -68,10 +68,14 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-if [ "$(uname -s)" != "Linux" ]; then
-    echo -e "${RED}Capri only ships for Linux right now. Build from source instead (see the README).${NC}"
-    exit 1
-fi
+case "$(uname -s)" in
+    Linux) os="linux" ;;
+    Darwin) os="darwin" ;;
+    *)
+        echo -e "${RED}This installer is for Linux and macOS. On Windows use install.ps1 (see the README).${NC}"
+        exit 1
+        ;;
+esac
 
 INSTALL_DIR=$HOME/.capri/bin
 mkdir -p "$INSTALL_DIR"
@@ -92,12 +96,14 @@ else
             ;;
     esac
 
-    target="linux-$arch"
-    if [ "$arch" = "x64" ] && ! grep -qwi avx2 /proc/cpuinfo 2>/dev/null; then
-        target="$target-baseline"
-    fi
-    if [ -f /etc/alpine-release ] || { command -v ldd >/dev/null 2>&1 && ldd --version 2>&1 | grep -qi musl; }; then
-        target="$target-musl"
+    target="$os-$arch"
+    if [ "$os" = "linux" ]; then
+        if [ "$arch" = "x64" ] && ! grep -qwi avx2 /proc/cpuinfo 2>/dev/null; then
+            target="$target-baseline"
+        fi
+        if [ -f /etc/alpine-release ] || { command -v ldd >/dev/null 2>&1 && ldd --version 2>&1 | grep -qi musl; }; then
+            target="$target-musl"
+        fi
     fi
 
     for tool in curl tar; do

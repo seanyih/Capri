@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Capri app icon master: the "C" of capri_dev/capri-logo.svg on a black tile. Rendered by gen-icons.ts. -->
+  <defs>
+    <linearGradient id="hair" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#FF3885"/>
+      <stop offset="1" stop-color="#FA064D"/>
+    </linearGradient>
+  </defs>
+  <!-- macOS-style inset tile (824px on a 1024 canvas) -->
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="#000000"/>
+  <rect x="104" y="104" width="816" height="816" rx="181" fill="none" stroke="#8536C9" stroke-width="8"/>
+  <g transform="translate(520,512) scale(1.5) translate(-188,-218)">
+    <g transform="translate(100,140) skewX(-16) scale(1,1.22)"><path d="M150,0 L40,0 L0,40 L0,140 L120,222 L181.6,115.6 L118,181 L40,128 L40,50 L55,35 L150,35 L205,-85 Z" fill="#8536C9" fill-rule="evenodd"/></g>
+    <g transform="translate(90,130) skewX(-16) scale(1,1.22)"><path d="M150,0 L40,0 L0,40 L0,140 L120,222 L181.6,115.6 L118,181 L40,128 L40,50 L55,35 L150,35 L205,-85 Z" fill="url(#hair)" fill-rule="evenodd"/></g>
+    <g fill="#02F968">
+      <g transform="translate(90,130) skewX(-16) scale(1,1.22)"><polygon points="184.1,-52.7 205.0,-85.0 184.1,-39.4"/></g>
+      <g transform="translate(90,130) skewX(-16) scale(1,1.22)"><polygon points="158.2,156.0 181.6,115.6 157.4,140.5"/></g>
+    </g>
+    <rect x="48" y="205" width="40" height="15" fill="#FFFFFF"/>
+    <rect x="160" y="123" width="32" height="15" fill="#02F968"/>
+    <rect x="88" y="300" width="24" height="15" fill="#FF3885"/>
+    <rect x="112" y="393" width="40" height="15" fill="#02F968"/>
+  </g>
+</svg>

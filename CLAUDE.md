@@ -2,7 +2,8 @@
 
 Capri-themed fork of opencode (Bun + TypeScript + Effect monorepo, v2.x, default branch `dev`).
 Goal: Capri (Cyberpunk: Edgerunners S2 AI) branding — icon/logo, color theme, and a system prompt
-that makes the model mock its accent. **Current slice: Linux CLI/TUI only.** Desktop and VS Code are later slices.
+that makes the model mock its accent. **Slices: CLI/TUI (Linux, Windows) and, since v0.2.0, the Electron desktop GUI
+(Windows/macOS/Linux, see `capri/docs/GUI.md`).** VS Code is a later slice.
 
 See `AGENTS.md` for upstream style/workflow rules (Effect patterns, theme-token rules, commit format). Follow them.
 
@@ -29,6 +30,9 @@ See `AGENTS.md` for upstream style/workflow rules (Effect patterns, theme-token 
 | `packages/plugin`, `packages/plugins`                                                                                      | Plugin API and bundled plugins                                                                                                                                                      |
 | `packages/ai`, `packages/util`, `packages/codemode`, `packages/merman`, `packages/latex`, `packages/effect-drizzle-sqlite` | LLM provider layer and support libs                                                                                                                                                 |
 | `packages/script`, `packages/http-recorder`, `packages/httpapi-codegen`, `packages/simulation`                             | Build/test tooling                                                                                                                                                                  |
+| `packages/desktop`                                                                                                         | Electron shell: windows, menus, packaging (`electron-builder.config.ts`), bundles the CLI as `resources/opencode-cli`                                                              |
+| `packages/app`, `packages/ui`, `packages/session-ui`                                                                       | GUI renderer (SolidJS): app shell, components/themes (`ui/src/theme/themes/oc-2.json` = Capri default), session timeline                                                           |
+| `packages/gui-extensions`, `packages/plugin-browser`                                                                       | Built-in GUI features (updater is disabled), browser plugin                                                                                                                         |
 | `.opencode/`                                                                                                               | Project-local opencode config: `opencode.jsonc`, `tui.json`, `themes/` (custom theme example `mytheme.json`), agents, skills, commands                                              |
 | `script/`                                                                                                                  | Repo-level scripts (release, lint, ast-grep rules)                                                                                                                                  |
 | `install`                                                                                                                  | Upstream curl installer script                                                                                                                                                      |
@@ -37,7 +41,7 @@ Dependency direction: Schema → Core/Protocol → Server; Client depends only o
 
 ## Layout — OUT OF SCOPE (git-ignored via `.gitignore`)
 
-Later slices: `sdks/vscode`, `packages/desktop`, `packages/app`, `packages/ui`, `packages/session-ui`, `packages/gui-extensions`, `packages/plugin-browser`, `packages/storybook`.
+Later slices: `sdks/vscode`, `packages/storybook`.
 Irrelevant: `packages/web`, `console`, `stats`, `posts`, `function`, `containers`, `identity`, `services/`, `infra/`, `github/`, `salesforce/`, `nix/`, `flake.*`, `sst*`, translated `README.*.md`, `CHANGELOG.md`, `STATS.md`, audit docs.
 Note: these were already tracked upstream, so `.gitignore` only hides new/untracked files; they still exist in the working tree and in git. To hide them from `git status` fully, use `git rm -r --cached`, or just don't search them. Re-enable a slice by deleting its line in `.gitignore`.
 
@@ -54,6 +58,7 @@ Note: these were already tracked upstream, so `.gitignore` only hides new/untrac
 - **Color theme**: add a built-in JSON in `packages/tui/src/theme/assets/` (follow existing, e.g. `cursor.json`/`dracula.json`) and register it per `theme/system.ts`/`index.ts`; token rules in `AGENTS.md` (use semantic tokens only). User-level custom themes go in `.opencode/themes/`.
 - **Accent-mocking prompt**: edit/add text in `packages/core/src/plugin/system-prompt/*.txt` (one per model family — a persona must be applied to all) or via `instructions`/agent prompt in `.opencode/agent/`.
 - **Naming/binary**: `packages/cli/package.json` `bin`, `bin/opencode.cjs`, build in `packages/cli/script/build.ts`.
+- **Desktop GUI**: guide in `capri/docs/GUI.md` (build, release workflow `.github/workflows/capri-desktop.yml`, signing, porting TUI features). App icon master `capri/desktop/icon.svg` → `bun capri/desktop/gen-icons.ts`. Package locally with `bunx electron-builder` (not `npx` on WSL). The desktop must bundle a Capri CLI via `OPENCODE_CLI_DIST`, or it ships opencode's.
 
 ## Workspace
 

@@ -6,7 +6,7 @@ Hi, chooms! I stole Capri from Arasaka and publish it on Github now! Y'all can n
 
 For netrunners: 
 
-Capri is an AI coding agent for your terminal. It's a Linux CLI/TUI fork of
+Capri is an AI coding agent for your terminal and desktop. It's a fork of
 [opencode](https://github.com/anomalyco/opencode), reskinned after Capri from *Cyberpunk: Edgerunners*: neon theme,
 her own logo, a mouthy persona, and a **cyberpsychosis** dial that decides how badly she misbehaves.
 
@@ -16,7 +16,7 @@ She writes your code. She also mocks you while she does it. Choose your chrome w
 
 ## 1. Download
 
-**Linux only.** Desktop and VS Code are future mods.
+**CLI/TUI: Linux and macOS. Desktop app: Windows, macOS and Linux** (since v0.2.0). VS Code is a future mod.
 
 ### One-liner
 
@@ -44,6 +44,29 @@ Installer options:
 | `-v, --version <tag>` | Install a specific release, e.g. `v0.1.0`     |
 | `-b, --binary <path>` | Install a local binary instead of downloading |
 | `--no-modify-path`    | Leave your shell config alone                 |
+
+### Desktop app (Windows / macOS / Linux)
+
+Grab the installer for your system from the [latest release](https://github.com/seanyih/Capri/releases/latest):
+
+| System | File |
+| --- | --- |
+| Windows (x64) | `capri-desktop-win-x64.exe` |
+| macOS (Apple Silicon) | `capri-desktop-mac-arm64.dmg` |
+| macOS (Intel) | `capri-desktop-mac-x64.dmg` |
+| Linux (x64) | `capri-desktop-linux-x86_64.AppImage`, `.deb` or `.rpm` |
+
+Same Capri inside: persona, cyberpsychosis levels, skills and `capri.json` (same location as the CLI), in a neon
+window with her logo and theme. The screen glitch, scrambled thinking and hidden tool output are TUI-only for now.
+
+The builds are not code-signed (Arasaka keeps the certificates):
+
+- **Windows**: SmartScreen says "Windows protected your PC". Click **More info → Run anyway**.
+- **macOS**: drag Capri to Applications, then run `xattr -cr /Applications/Capri.app` once in Terminal, or macOS
+  says the app is damaged.
+
+The desktop app does not update itself. Download the next release when it drops. Build steps and the release
+workflow: [`capri/docs/GUI.md`](capri/docs/GUI.md).
 
 ### Build from source (for the paranoid)
 
@@ -231,7 +254,9 @@ Notes:
 
 - A more complete NC knowledge base.
 
-- Windows/MacOS versions and GUI versions.
+- GUI ports of the TUI chrome: screen glitch, scrambled thinking, hidden tool output, `/cyberpsycosis` picker.
+
+- VS Code extension.
 
 - (Possibly) a screen pet. I've never made one so I don't know how hard It'll be.
 

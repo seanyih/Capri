@@ -1,0 +1,210 @@
+# Capri GUI release: builds the Capri CLI (cross-compiled on Linux) and the Electron desktop app for macOS (arm64, x64),
+# Windows (x64) and Linux (x64), then uploads the installers and CLI archives to a DRAFT GitHub release for the tag.
+# Review the draft and publish it by hand. Source of truth: capri/ci/capri-desktop.yml (copied by capri/sync.sh).
+#
+# Trigger: push a tag (`git tag v0.2.0 && git push origin v0.2.0`), or run it from the Actions tab with a version
+# (artifacts only; the release job runs for tags). Signing is optional (see capri/docs/GUI.md): without secrets, macOS
+# builds are ad-hoc signed and Windows builds are unsigned.
+name: capri-desktop
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version without the v, e.g. 0.2.0"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency: capri-desktop-${{ github.ref }}
+
+env:
+  CAPRI_VERSION: ${{ inputs.version || github.ref_name }}
+
+jobs:
+  cli:
+    if: github.repository == 'seanyih/Capri'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: package.json
+
+      # Not --frozen-lockfile: bun.lock still lists opencode packages this fork does not track (web, console, ...).
+      - run: bun install
+
+      # build.ts empties its outdir, so each target gets its own and they are merged into dist/.
+      - name: Build CLI for every desktop target
+        working-directory: packages/cli
+        run: |
+          export OPENCODE_VERSION="${CAPRI_VERSION#v}"
+          mkdir -p dist
+          install=""
+          for target in opencode-darwin-arm64 opencode-darwin-x64 opencode-windows-x64 opencode-linux-x64; do
+            bun ./script/build.ts --target="$target" --skip-web-ui --outdir="dist-$target" $install
+            cp -R "dist-$target"/cli-* dist/
+            install="--skip-install"
+          done
+          ls dist
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: capri-cli
+          path: packages/cli/dist/cli-*
+          if-no-files-found: error
+
+  desktop:
+    needs: cli
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - host: macos-26
+            target: aarch64-apple-darwin
+            cli: cli-darwin-arm64
+            archive: capri-darwin-arm64.tar.gz
+            platform_flag: --mac --arm64
+            bun_install_flags: --os=darwin --cpu=arm64
+          - host: macos-26-intel
+            target: x86_64-apple-darwin
+            cli: cli-darwin-x64
+            archive: capri-darwin-x64.tar.gz
+            platform_flag: --mac --x64
+            bun_install_flags: --os=darwin --cpu=x64
+          - host: windows-2025
+            target: x86_64-pc-windows-msvc
+            cli: cli-windows-x64
+            archive: capri-windows-x64.zip
+            platform_flag: --win
+          - host: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+            cli: cli-linux-x64
+            archive: capri-linux-x64.tar.gz
+            platform_flag: --linux
+    runs-on: ${{ matrix.settings.host }}
+    env:
+      HAS_APPLE_CERT: ${{ secrets.APPLE_CERTIFICATE != '' }}
+      OPENCODE_CHANNEL: prod
+      OPENCODE_CLI_TARGET: ${{ matrix.settings.target }}
+      OPENCODE_CLI_DIST: ${{ github.workspace }}/packages/cli/dist
+    steps:
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+
+      - name: Version
+        shell: bash
+        run: echo "OPENCODE_VERSION=${CAPRI_VERSION#v}" >> "$GITHUB_ENV"
+
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: capri-cli
+          path: packages/cli/dist
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "24"
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: package.json
+
+      - run: bun install ${{ matrix.settings.bun_install_flags }}
+
+      - name: Install rpm (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends rpm
+
+      - uses: apple-actions/import-codesign-certs@8f3fb608891dd2244cdab3d69cd68c0d37a7fe93 # v2.0.0
+        if: runner.os == 'macOS' && env.HAS_APPLE_CERT == 'true'
+        with:
+          keychain: build
+          p12-file-base64: ${{ secrets.APPLE_CERTIFICATE }}
+          p12-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+
+      - name: Signing environment (macOS)
+        if: runner.os == 'macOS' && env.HAS_APPLE_CERT == 'true'
+        shell: bash
+        env:
+          APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_PATH }}
+        run: |
+          echo "CSC_KEYCHAIN=build.keychain" >> "$GITHUB_ENV"
+          if [ -n "$APPLE_API_KEY_P8" ]; then
+            echo "$APPLE_API_KEY_P8" > "$RUNNER_TEMP/apple-api-key.p8"
+            echo "APPLE_API_KEY=$RUNNER_TEMP/apple-api-key.p8" >> "$GITHUB_ENV"
+            echo "APPLE_API_KEY_ID=${{ secrets.APPLE_API_KEY }}" >> "$GITHUB_ENV"
+            echo "APPLE_API_ISSUER=${{ secrets.APPLE_API_ISSUER }}" >> "$GITHUB_ENV"
+          fi
+
+      # Artifacts drop the executable bit; macOS also needs at least an ad-hoc signature to run an arm64 binary.
+      - name: Archive CLI
+        shell: bash
+        run: |
+          bin="packages/cli/dist/${{ matrix.settings.cli }}/bin"
+          mkdir -p release
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            cp "$bin/opencode.exe" release/capri.exe
+            (cd release && 7z a -tzip "${{ matrix.settings.archive }}" capri.exe && rm capri.exe)
+          else
+            chmod 755 "$bin/opencode"
+            if [ "${{ runner.os }}" = "macOS" ]; then codesign --force --sign - "$bin/opencode"; fi
+            cp "$bin/opencode" release/capri
+            tar -czf "release/${{ matrix.settings.archive }}" -C release capri
+            rm release/capri
+          fi
+
+      - name: Prepare desktop
+        run: bun ./scripts/prepare.ts
+        working-directory: packages/desktop
+
+      - name: Build desktop
+        run: bun run build
+        working-directory: packages/desktop
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+
+      - name: Package desktop
+        run: npx electron-builder ${{ matrix.settings.platform_flag }} --publish never --config electron-builder.config.ts
+        working-directory: packages/desktop
+        timeout-minutes: 60
+
+      - name: Collect installers
+        shell: bash
+        run: |
+          shopt -s nullglob
+          for file in packages/desktop/dist/*.{dmg,zip,exe,AppImage,deb,rpm}; do cp "$file" release/; done
+          ls -la release
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: capri-${{ matrix.settings.target }}
+          path: release/*
+          if-no-files-found: error
+
+  release:
+    needs: desktop
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: capri-*-*
+          path: release
+          merge-multiple: true
+
+      - name: Upload to draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          ls -la release
+          if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --draft --title "Capri $TAG" \
+              --notes "Capri $TAG: desktop app (macOS, Windows, Linux) and CLI. See the README for install steps."
+          fi
+          gh release upload "$TAG" release/* --repo "$GITHUB_REPOSITORY" --clobber

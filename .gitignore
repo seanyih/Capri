@@ -39,15 +39,9 @@ tsconfig.tsbuildinfo
 /artifacts/
 
 # --- Capri fork: out of scope for the Linux CLI slice ---
-# Desktop / web / editor frontends (re-enable per slice)
+# Desktop / web / editor frontends (re-enable per slice). The GUI slice (desktop, app, ui, session-ui,
+# gui-extensions, plugin-browser, storybook for the app's component tests) is enabled since v0.2.0.
 /sdks/vscode/
-/packages/desktop/
-/packages/app/
-/packages/ui/
-/packages/session-ui/
-/packages/gui-extensions/
-/packages/plugin-browser/
-/packages/storybook/
 # Marketing, docs, console, stats, cloud infra
 /packages/web/
 /packages/console/

@@ -9,11 +9,14 @@ capri/
 ├── prompts/       persona and cyberpsycosis prompts
 ├── glitch/        screen glitch and the /cyberpsycosis picker
 ├── config/        capri.json reading and writing
-├── logo/          logo art and renderers
-├── theme/         color theme
+├── logo/          logo art and renderers (TUI and GUI)
+├── theme/         color themes (TUI and GUI)
+├── desktop/       desktop app icon master, icon generator, rendered icons
+├── ci/            GitHub workflow for GUI releases
 ├── skills/        on-demand skills (Cyberpunk lore)
 ├── install/       installer
-├── docs/          project README
+├── docs/          project README, GUI guide
+├── tests/         tests changed for Capri
 └── upstream/      snapshots of edited upstream opencode files
 ```
 
@@ -52,6 +55,7 @@ upstream opencode changes, run `from-repo` before editing here, or the merge is 
 | `logo.ts` | `packages/tui/src/logo.ts` | Quadrant-block wordmark (the default character art). |
 | `logo-halfblock.ts` | `packages/tui/src/logo-halfblock.ts` | Half-block wordmark. |
 | `logo-image.ts` | `packages/tui/src/logo-image.ts` | Inline PNG for kitty/sixel terminals. |
+| `gui-logo.tsx` | `packages/ui/src/components/logo.tsx` | GUI `Logo` (wordmark), `Mark` and `Splash` ("C") as SVG, drawn from `capri_dev/capri-logo.svg`; `mono` prop paints with icon tokens. |
 
 Source masters and preview renders live in the git-ignored `capri_dev/`.
 
@@ -60,6 +64,22 @@ Source masters and preview renders live in the git-ignored `capri_dev/`.
 | File | Target | Function |
 |---|---|---|
 | `capri-theme.json` | `packages/tui/src/theme/assets/v2/opencode.json` | Dark-only v2 TUI color theme (replaces the built-in v2 `opencode` theme). |
+| `capri-desktop-theme.json` | `packages/ui/src/theme/themes/oc-2.json` | Desktop theme named "Capri" in the default `oc-2` slot: dark variant (black, pink, green, purple borders, explicit grey ramp) and a light day variant. |
+
+## desktop/
+
+| File | Target | Function |
+|---|---|---|
+| `icon.svg` | | App icon master: the wordmark's "C" on a black tile with a purple rim (1024px, macOS inset). |
+| `gen-icons.ts` | | `bun capri/desktop/gen-icons.ts` renders `icon.svg` with sharp into `icons/` and `favicon/` (writes `.icns`/`.ico` itself). |
+| `icons/*` | `packages/desktop/icons/{dev,beta,prod}/*` | Electron icons: `icon.icns` (inset), `icon.ico`, `icon.png`, `NxN.png`, `dock.png`, `Square*Logo.png`. |
+| `favicon/*` | `packages/ui/src/assets/favicon/*` | Renderer favicons (`favicon-v3.*`, `favicon-96x96-v3.png`, `apple-touch-icon-v3.png`, web manifest PNGs). |
+
+## ci/
+
+| File | Target | Function |
+|---|---|---|
+| `capri-desktop.yml` | `.github/workflows/capri-desktop.yml` | On a `v*` tag: cross-builds the CLI, packages the desktop app on macOS arm64/x64, Windows x64 and Linux x64, uploads installers and CLI archives to a draft release. See `docs/GUI.md`. |
 
 ## skills/
 
@@ -80,14 +100,21 @@ references load when the model calls the `skill` tool and reads a file, so they 
 
 | File | Target | Function |
 |---|---|---|
-| `install.sh` | `install` | Linux installer: downloads the release (or `--binary` for a local build), installs it as `~/.capri/bin/capri`, adds it to `PATH`, writes the default `~/.config/capri/capri.json` unless one exists, and installs the `capri/skills` files to `~/.config/opencode/skills/` (copied from a checkout, else fetched from the repo; rerun refreshes them). Replaces opencode's installer. |
+| `install.sh` | `install` | Linux and macOS installer (also run by the macOS desktop's "Install CLI…"): downloads the release (or `--binary` for a local build), installs it as `~/.capri/bin/capri`, adds it to `PATH`, writes the default `~/.config/capri/capri.json` unless one exists, and installs the `capri/skills` files to `~/.config/opencode/skills/` (copied from a checkout, else fetched from the repo; rerun refreshes them). Replaces opencode's installer. |
 | `install.ps1` | `install.ps1` | Windows (x64) installer: same steps as `install.sh` — downloads `capri-windows-x64.zip` (or `-Binary` for a local build), installs `%USERPROFILE%\.capri\bin\capri.exe`, adds it to the user `PATH`, writes `%USERPROFILE%\.config\capri\capri.json` unless one exists, installs the skills to `%USERPROFILE%\.config\opencode\skills\`. |
 
 ## docs/
 
 | File | Target | Function |
 |---|---|---|
-| `README.md` | `README.md` | Project README (English only): install, features, cyberpsychosis levels, `capri.json` options, opencode MIT attribution, NVIDIA NIM appendix. Replaces opencode's README. |
+| `README.md` | `README.md` | Project README (English only): install (CLI and desktop), features, cyberpsychosis levels, `capri.json` options, opencode MIT attribution, NVIDIA NIM appendix. Replaces opencode's README. |
+| `GUI.md` | | Desktop app guide: how the GUI is layered, what v0.2.0 changes, local builds, the release workflow and signing, and how to port more Capri features to the GUI. |
+
+## tests/ (GUI)
+
+| File | Target | Function |
+|---|---|---|
+| `ui-theme-v2-resolve.test.ts` | `packages/ui/src/theme/v2/resolve.test.ts` | Default-theme grey values pinned to the Capri ramp. |
 
 ## upstream/ (snapshots of edited opencode files)
 
@@ -128,6 +155,28 @@ references load when the model calls the `skill` tool and reads a file, so they 
 | `cli-server-process.ts` | `packages/cli/src/server-process.ts` | OpenCode wording replaced with Capri (`opencode <cmd>` hints are now `capri <cmd>`). |
 | `cli-remote-tunnel.ts` | `packages/cli/src/services/remote-tunnel.ts` | OpenCode wording replaced with Capri (`opencode <cmd>` hints are now `capri <cmd>`). |
 | `cli-build.ts` | `packages/cli/script/build.ts` | `OPENCODE_CLI_NAME` is `capri`, so `--version` and help say `capri`. |
+| `desktop-electron-builder.config.ts` | `packages/desktop/electron-builder.config.ts` | Product `Capri`, app ids `io.github.seanyih.capri[.dev/.beta]`, `capri-desktop-*` artifacts, no update feed, no legacy opencode launcher; signing opt-in (ad-hoc macOS without a certificate, Windows only with `CAPRI_WINDOWS_SIGN=true`). |
+| `desktop-electron-builder.config.test.ts` | `packages/desktop/electron-builder.config.test.ts` | Expects the Capri app ids and no legacy launcher. |
+| `desktop-constants.ts` | `packages/desktop/src/main/constants.ts` | Runtime app names/ids match the builder config. |
+| `desktop-copy-metainfo.ts` | `packages/desktop/scripts/copy-metainfo.ts` | Linux AppStream metadata describes Capri. |
+| `desktop-utils.ts` | `packages/desktop/scripts/utils.ts` | Accepts a non-baseline CLI build; signs the bundled CLI on Windows only with `CAPRI_WINDOWS_SIGN=true`. |
+| `desktop-prebuild.ts` | `packages/desktop/scripts/prebuild.ts` | A supplied `OPENCODE_CLI_DIST` is used on every channel (otherwise dev/beta download opencode's CLI). |
+| `desktop-package.json` | `packages/desktop/package.json` | Description, homepage and author are Capri's (electron-builder uses them). |
+| `desktop-cli.ts` | `packages/desktop/src/main/service/desktop-cli.ts` | "Install CLI…" (macOS) reports `~/.capri/bin/capri`, where Capri's `install` puts it. |
+| `desktop-window-defaults.ts` | `packages/desktop/src/main/windows/defaults.ts` | First-launch window background is the dark Capri theme. |
+| `desktop-window-appearance.ts` | `packages/desktop/src/main/windows/appearance.ts` | Window title `Capri`. |
+| `desktop-window-early.ts` | `packages/desktop/src/main/windows/early.ts` | Early window title `Capri`. |
+| `desktop-index.html` | `packages/desktop/src/renderer/index.html` | Page title `Capri`. |
+| `gui-updater-main.ts` | `packages/gui-extensions/src/updater/main.ts` | Updater off (`enabled = false`); opencode's feed would install OpenCode over Capri. |
+| `ui-theme-context.tsx` | `packages/ui/src/theme/context.tsx` | Default theme named "Capri"; default color scheme `dark` instead of `system`. |
+| `app-theme-preload.js` | `packages/app/public/oc-theme-preload.js` | Pre-paint script also defaults to dark. |
+| `ui-favicon.tsx` | `packages/ui/src/components/favicon.tsx` | Apple web-app title `Capri`. |
+| `ui-site.webmanifest` | `packages/ui/src/assets/favicon/site.webmanifest` | Web app name `Capri`. |
+| `app-wordmark.tsx` | `packages/app/src/new-session/wordmark.tsx` | New-session screen shows the colored Capri wordmark (shimmer stays a mono overlay). |
+| `app-windows-menu.tsx` | `packages/app/src/shell/titlebar/windows-menu.tsx` | Windows title-bar menu heading `Capri`. |
+| `app-desktop-menu.ts` | `packages/app/src/shell/commands/desktop-menu.ts` | Help → Share Feedback / Report a Bug open the Capri repo's issues. |
+| `app-desktop-native.ts` | `packages/app/src/runtime/i18n/desktop-native.ts` | English native strings: app menu, menu label, crash dialogs say Capri; CLI install message says `capri`. |
+| `app-i18n-en.ts` | `packages/app/src/runtime/i18n/en.ts` | Settings → About describes Capri. |
 
 ## Edits to upstream files that are not copied here
 

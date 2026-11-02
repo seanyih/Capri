@@ -76,12 +76,52 @@ code=(
   "tests/session-group-navigation.test.tsx packages/tui/test/session-group-navigation.test.tsx"
   "tests/session-activity-anchor.test.tsx packages/tui/test/session-activity-anchor.test.tsx"
   "tests/group-view.test.tsx packages/tui/test/cli/tui/group-view.test.tsx"
+  # GUI (desktop app): Capri-authored files
+  "logo/gui-logo.tsx packages/ui/src/components/logo.tsx"
+  "theme/capri-desktop-theme.json packages/ui/src/theme/themes/oc-2.json"
+  "ci/capri-desktop.yml .github/workflows/capri-desktop.yml"
+  "desktop/favicon/favicon-v3.svg packages/ui/src/assets/favicon/favicon-v3.svg"
+  "desktop/favicon/favicon-v3.ico packages/ui/src/assets/favicon/favicon-v3.ico"
+  "desktop/favicon/favicon-96x96-v3.png packages/ui/src/assets/favicon/favicon-96x96-v3.png"
+  "desktop/favicon/apple-touch-icon-v3.png packages/ui/src/assets/favicon/apple-touch-icon-v3.png"
+  "desktop/favicon/web-app-manifest-192x192.png packages/ui/src/assets/favicon/web-app-manifest-192x192.png"
+  "desktop/favicon/web-app-manifest-512x512.png packages/ui/src/assets/favicon/web-app-manifest-512x512.png"
+  # GUI: edited upstream files
+  "upstream/app-wordmark.tsx packages/app/src/new-session/wordmark.tsx"
+  "upstream/ui-theme-context.tsx packages/ui/src/theme/context.tsx"
+  "upstream/app-theme-preload.js packages/app/public/oc-theme-preload.js"
+  "upstream/desktop-window-defaults.ts packages/desktop/src/main/windows/defaults.ts"
+  "upstream/desktop-window-appearance.ts packages/desktop/src/main/windows/appearance.ts"
+  "upstream/desktop-window-early.ts packages/desktop/src/main/windows/early.ts"
+  "upstream/desktop-index.html packages/desktop/src/renderer/index.html"
+  "upstream/app-windows-menu.tsx packages/app/src/shell/titlebar/windows-menu.tsx"
+  "upstream/ui-favicon.tsx packages/ui/src/components/favicon.tsx"
+  "upstream/ui-site.webmanifest packages/ui/src/assets/favicon/site.webmanifest"
+  "upstream/app-desktop-menu.ts packages/app/src/shell/commands/desktop-menu.ts"
+  "upstream/app-desktop-native.ts packages/app/src/runtime/i18n/desktop-native.ts"
+  "upstream/app-i18n-en.ts packages/app/src/runtime/i18n/en.ts"
+  "upstream/desktop-cli.ts packages/desktop/src/main/service/desktop-cli.ts"
+  "upstream/desktop-constants.ts packages/desktop/src/main/constants.ts"
+  "upstream/gui-updater-main.ts packages/gui-extensions/src/updater/main.ts"
+  "upstream/desktop-electron-builder.config.ts packages/desktop/electron-builder.config.ts"
+  "upstream/desktop-electron-builder.config.test.ts packages/desktop/electron-builder.config.test.ts"
+  "upstream/desktop-copy-metainfo.ts packages/desktop/scripts/copy-metainfo.ts"
+  "upstream/desktop-utils.ts packages/desktop/scripts/utils.ts"
+  "upstream/desktop-prebuild.ts packages/desktop/scripts/prebuild.ts"
+  "upstream/desktop-package.json packages/desktop/package.json"
+  "tests/ui-theme-v2-resolve.test.ts packages/ui/src/theme/v2/resolve.test.ts"
 )
 for entry in "${code[@]}"; do
   read -r name target <<<"$entry"
   if [ "$mode" = "from-repo" ]; then mkdir -p "$(dirname "$root/capri/$name")" && cp "$root/$target" "$root/capri/$name"; else mkdir -p "$(dirname "$root/$target")" && cp "$root/capri/$name" "$root/$target"; fi
 done
 [ "$mode" = "from-repo" ] && exit 0
+
+# Desktop app icons (rendered by desktop/gen-icons.ts) go to every channel; the folders also keep opencode's unused
+# Tauri-era android/ and ios/ icons.
+for channel in dev beta prod; do
+  cp "$root"/capri/desktop/icons/* "$root/packages/desktop/icons/$channel/"
+done
 
 dest="$root/packages/core/src/session/runner/prompt/capri"
 mkdir -p "$dest"
