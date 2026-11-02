@@ -218,7 +218,13 @@ const getBase = (appId: string): Configuration => {
       installerIcon: `resources/icons/icon.ico`,
       installerHeaderIcon: `resources/icons/icon.ico`,
     },
+    // Capri: the updater is off, so skip the update metadata; building the DMG block map also hung on Intel runners.
+    dmg: {
+      writeUpdateInfo: false,
+    },
     linux: {
+      // Capri: .deb needs a maintainer and package.json has no author email.
+      maintainer: "seanyih <seanyih@users.noreply.github.com>",
       icon: `resources/icons`,
       category: "Development",
       executableName: linuxExecutableName(appId),
