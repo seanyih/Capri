@@ -47,7 +47,7 @@ jobs:
           export OPENCODE_VERSION="${CAPRI_VERSION#v}"
           mkdir -p dist
           install=""
-          for target in opencode-darwin-arm64 opencode-darwin-x64 opencode-windows-x64 opencode-linux-x64; do
+          for target in opencode-darwin-arm64 opencode-darwin-x64 opencode-windows-x64 opencode-linux-x64 opencode-linux-x64-baseline; do
             bun ./script/build.ts --target="$target" --skip-web-ui --outdir="dist-$target" $install
             cp -R "dist-$target"/cli-* dist/
             install="--skip-install"
@@ -155,6 +155,14 @@ jobs:
             if [ "${{ runner.os }}" = "macOS" ]; then codesign --force --sign - "$bin/opencode"; fi
             cp "$bin/opencode" release/capri
             tar -czf "release/${{ matrix.settings.archive }}" -C release capri
+            rm release/capri
+          fi
+          # `install` picks the baseline build on x64 CPUs without AVX2.
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            base="packages/cli/dist/cli-linux-x64-baseline/bin/opencode"
+            chmod 755 "$base"
+            cp "$base" release/capri
+            tar -czf release/capri-linux-x64-baseline.tar.gz -C release capri
             rm release/capri
           fi
 
