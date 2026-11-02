@@ -32,7 +32,7 @@ All files are tracked in `capri/` (see `capri/README.md` for the full table) and
 | Area | Change | Files |
 |---|---|---|
 | Identity | Product name `Capri`, app id `io.github.seanyih.capri` (`.dev`/`.beta`), so it installs and stores data beside OpenCode Desktop instead of over it. Artifacts are `capri-desktop-<os>-<arch>.<ext>`. | `desktop-electron-builder.config.ts`, `desktop-constants.ts`, `desktop-copy-metainfo.ts`, `desktop-package.json` |
-| Icons | App icon is the "C" of the Capri wordmark on a black tile (`capri/desktop/icon.svg`), rendered into `.icns`/`.ico`/PNGs and favicons by `capri/desktop/gen-icons.ts`. | `capri/desktop/*` |
+| Icons | App icon is Capri's face (`capri/desktop/icon-art.png`) on a rounded tile (`capri/desktop/icon.svg`), rendered into `.icns`/`.ico`/PNGs and favicons by `capri/desktop/gen-icons.ts`. | `capri/desktop/*` |
 | Theme | The default desktop theme (`oc-2`, the one used before any choice) is replaced by the Capri palette: black, pink `#FF3885`, green `#02F968`, purple `#8536C9` borders. The default color scheme is **dark**; light is a Capri day variant. | `theme/capri-desktop-theme.json`, `ui-theme-context.tsx`, `app-theme-preload.js`, `desktop-window-defaults.ts` |
 | Logo | `Logo`, `Mark` and `Splash` draw the Capri wordmark / "C" (colored, or `mono` for overlays). The new-session screen shows the colored wordmark. | `logo/gui-logo.tsx`, `app-wordmark.tsx` |
 | Strings | Window title, menu name, About text, crash dialogs say Capri; "Install CLI…" (macOS) installs `~/.capri/bin/capri`; Help → Report a Bug opens the Capri repo. | `desktop-window-*.ts`, `desktop-index.html`, `app-*.ts(x)`, `desktop-cli.ts`, `ui-favicon.tsx`, `ui-site.webmanifest` |

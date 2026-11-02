@@ -79,7 +79,8 @@ Source masters and preview renders live in the git-ignored `capri_dev/`.
 
 | File | Target | Function |
 |---|---|---|
-| `icon.svg` | | App icon master: the wordmark's "C" on a black tile with a purple rim (1024px, macOS inset). |
+| `icon.svg` | | App icon master: `icon-art.png` clipped to a rounded tile with a purple rim (1024px, macOS inset). |
+| `icon-art.png` | | Icon artwork: a square crop of Capri's face (457px). Replace it and rerun `gen-icons.ts` to change the icon. |
 | `gen-icons.ts` | | `bun capri/desktop/gen-icons.ts` renders `icon.svg` with sharp into `icons/` and `favicon/` (writes `.icns`/`.ico` itself). |
 | `icons/*` | `packages/desktop/icons/{dev,beta,prod}/*` | Electron icons: `icon.icns` (inset), `icon.ico`, `icon.png`, `NxN.png`, `dock.png`, `Square*Logo.png`. |
 | `favicon/*` | `packages/ui/src/assets/favicon/*` | Renderer favicons (`favicon-v3.*`, `favicon-96x96-v3.png`, `apple-touch-icon-v3.png`, web manifest PNGs). |

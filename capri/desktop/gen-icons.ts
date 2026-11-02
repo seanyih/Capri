@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-// Renders capri/desktop/icon.svg into every app icon the GUI needs:
+// Renders capri/desktop/icon.svg (with icon-art.png inlined) into every app icon the GUI needs:
 //   capri/desktop/icons/   electron-builder set (icon.icns, icon.ico, icon.png, NxN.png, dock.png, Square*Logo.png)
 //   capri/desktop/favicon/ renderer favicons (packages/ui/src/assets/favicon/*-v3.*, web manifest PNGs)
 // Run from the repo root after editing icon.svg: `bun capri/desktop/gen-icons.ts`, then `capri/sync.sh`.
@@ -17,7 +17,12 @@ const version = (await readdir(store))
 if (!version) throw new Error("sharp not found in node_modules/.bun; run bun install")
 const sharp = (await import(path.join(store, version, "node_modules", "sharp"))).default
 
-const master = await Bun.file(path.join(here, "icon.svg")).text()
+// icon.svg points at icon-art.png; inline it so sharp (librsvg) does not have to resolve a relative file.
+const art = Buffer.from(await Bun.file(path.join(here, "icon-art.png")).arrayBuffer()).toString("base64")
+const master = (await Bun.file(path.join(here, "icon.svg")).text()).replace(
+  'href="icon-art.png"',
+  `href="data:image/png;base64,${art}"`,
+)
 // Full-bleed variant (tile only, no macOS inset) for favicons and small Windows/Linux sizes.
 const tile = master.replace('viewBox="0 0 1024 1024"', 'viewBox="100 100 824 824"')
 
