@@ -37,6 +37,9 @@ upstream opencode changes, run `from-repo` before editing here, or the merge is 
 | File | Target | Function |
 |---|---|---|
 | `glitch.ts` | `packages/tui/src/glitch.ts` | Glitch engine: rectangles, row shifts, rates by level and context use, painting. Applies to low, medium and max. |
+| `gui-glitch-engine.ts` | `packages/app/src/capri/glitch-engine.ts` | The same engine without OpenTUI, for the GUI (same rates, shapes and palette, measured in 8x18px cells). |
+| `gui-glitch.tsx` | `packages/app/src/capri/glitch.tsx` | GUI glitch overlay: a click-through layer with colored blocks and pink/green torn rows. Off at `none`, with `glitchProbability: 0`, or with reduced motion. Mounted in `app.tsx`. |
+| `gui-commands.tsx` | `packages/app/src/capri/commands.tsx` | GUI `/cyberpsycosis` picker (writes capri.json), `/soulkiller` (compact), `/chrome` (model), `/nightcity` (home), `/quickhacks` (opens the @ list of skills), `/cd moon` (closes the window). Also reports the session's context use to the glitch. |
 | `glitch.test.ts` | `packages/tui/test/glitch.test.ts` | Tests for the glitch engine. |
 | `cyber-glitch.tsx` | `packages/tui/src/component/cyber-glitch.tsx` | Mounts the glitch on the renderer's post-process pass. |
 | `dialog-cyberpsycosis.tsx` | `packages/tui/src/component/dialog-cyberpsycosis.tsx` | The `/cyberpsycosis` level picker. |
@@ -47,6 +50,11 @@ upstream opencode changes, run `from-repo` before editing here, or the merge is 
 |---|---|---|
 | `capri.ts` | `packages/core/src/capri.ts` | Reads and writes `~/.config/capri/capri.json`: `cyberpsycosis` level, `glitchProbability` multiplier (default 1, 0 = off). |
 | `capri-config.ts` | `packages/tui/src/capri-config.ts` | Reads `capri.json` for the TUI: `logo.style`, `hide.thinking`, `hide.toolResults`, `hide.skills`, `footer.name/model/tps`. |
+| `desktop-capri-file.ts` | `packages/desktop/src/main/capri-file.ts` | Desktop main process: reads `capri.json` (JSONC, `CAPRI_CYBERPSYCOSIS` and `CAPRI_GLITCH_CONTEXT` overrides) and rewrites only `cyberpsycosis`. |
+| `desktop-capri-file.test.ts` | `packages/desktop/src/main/capri-file.test.ts` | Tests for the above. |
+| `desktop-capri-ipc.ts` | `packages/desktop/src/main/capri.ts` | IPC channels `capri:read` / `capri:set-cyberpsycosis`; the preload exposes them as `window.electron.capri`. |
+| `gui-capri.ts` | `packages/session-ui/src/capri.ts` | GUI settings store (`@opencode/session-ui/capri`): TUI defaults, `connectCapri` bridge, `setCyberpsycosis`, context ratio for the glitch, `agentLabel` (build → Capri), and the TUI's thinking cipher `encrypt`. |
+| `gui-capri.test.ts` | `packages/session-ui/src/capri.test.ts` | Tests for defaults, cipher and labels. |
 
 ## logo/
 
@@ -55,7 +63,8 @@ upstream opencode changes, run `from-repo` before editing here, or the merge is 
 | `logo.ts` | `packages/tui/src/logo.ts` | Quadrant-block wordmark (the default character art). |
 | `logo-halfblock.ts` | `packages/tui/src/logo-halfblock.ts` | Half-block wordmark. |
 | `logo-image.ts` | `packages/tui/src/logo-image.ts` | Inline PNG for kitty/sixel terminals. |
-| `gui-logo.tsx` | `packages/ui/src/components/logo.tsx` | GUI `Logo` (wordmark), `Mark` and `Splash` ("C") as SVG, drawn from `capri_dev/capri-logo.svg`; `mono` prop paints with icon tokens. |
+| `gui-logo.tsx` | `packages/ui/src/components/logo.tsx` | GUI `Logo` (wordmark), `Mark` and `Splash` ("C") as SVG, drawn from `capri_dev/capri-logo.svg`; `mono` prop paints with icon tokens. Exports the glyph data. |
+| `gui-wordmark.tsx` | `packages/ui/src/typography/wordmark/wordmark.tsx` | One-color Capri `Wordmark` replacing opencode's; its `outline` mode is what the desktop first-launch splash draws. |
 
 Source masters and preview renders live in the git-ignored `capri_dev/`.
 
@@ -64,7 +73,7 @@ Source masters and preview renders live in the git-ignored `capri_dev/`.
 | File | Target | Function |
 |---|---|---|
 | `capri-theme.json` | `packages/tui/src/theme/assets/v2/opencode.json` | Dark-only v2 TUI color theme (replaces the built-in v2 `opencode` theme). |
-| `capri-desktop-theme.json` | `packages/ui/src/theme/themes/oc-2.json` | Desktop theme named "Capri" in the default `oc-2` slot: dark variant (black, pink, green, purple borders, explicit grey ramp) and a light day variant. |
+| `capri-desktop-theme.json` | `packages/ui/src/theme/themes/oc-2.json` | Desktop theme named "Capri" in the default `oc-2` slot: dark variant (black, pink, green, purple borders, explicit grey ramp) and a light day variant. Its `markdown-*` colors are the CLI palette; `capri-user-bubble-bg/-fg` make the user bubble acid pink. |
 
 ## desktop/
 
@@ -115,6 +124,7 @@ references load when the model calls the `skill` tool and reads a file, so they 
 | File | Target | Function |
 |---|---|---|
 | `ui-theme-v2-resolve.test.ts` | `packages/ui/src/theme/v2/resolve.test.ts` | Default-theme grey values pinned to the Capri ramp. |
+| `app-theme-preload.test.ts` | `packages/app/src/theme-preload.test.ts` | Pre-paint defaults to dark when no scheme is stored. |
 
 ## upstream/ (snapshots of edited opencode files)
 
@@ -177,6 +187,21 @@ references load when the model calls the `skill` tool and reads a file, so they 
 | `app-desktop-menu.ts` | `packages/app/src/shell/commands/desktop-menu.ts` | Help → Share Feedback / Report a Bug open the Capri repo's issues. |
 | `app-desktop-native.ts` | `packages/app/src/runtime/i18n/desktop-native.ts` | English native strings: app menu, menu label, crash dialogs say Capri; CLI install message says `capri`. |
 | `app-i18n-en.ts` | `packages/app/src/runtime/i18n/en.ts` | Settings → About describes Capri. |
+| `app-app.tsx` | `packages/app/src/app.tsx` | Mounts `<CapriGlitch />` over the whole window. |
+| `app-desktop.ts` | `packages/app/src/desktop.ts` | Re-exports `connectCapri` for the desktop renderer. |
+| `app-new-session-screen.tsx` | `packages/app/src/new-session/screen.tsx` | Registers the Capri commands on the new-session screen (no `/soulkiller`). |
+| `app-session-composer-region.tsx` | `packages/app/src/session/composer/region.tsx` | Registers the Capri commands in a session, with its messages and context limit for the glitch. |
+| `app-server-connect-screen.tsx` | `packages/app/src/servers/connect/screen.tsx` | Wordmark label says Capri. |
+| `desktop-main-index.ts` | `packages/desktop/src/main/index.ts` | Registers the capri.json IPC handlers. |
+| `desktop-preload-index.ts` | `packages/desktop/src/preload/index.ts` | Exposes `window.electron.capri` (read, setCyberpsycosis). |
+| `desktop-preload-types.ts` | `packages/desktop/src/preload/types.ts` | Type of `window.electron.capri`. |
+| `desktop-renderer-index.tsx` | `packages/desktop/src/renderer/index.tsx` | Connects the capri.json bridge before the app renders. |
+| `desktop-splash.tsx` | `packages/desktop/src/renderer/startup/splash.tsx` | First-launch splash draws the Capri wordmark in the accent pink, sized like the new-session wordmark. |
+| `desktop-splash.css` | `packages/desktop/src/renderer/startup/splash.css` | The splash outline draws, then fills in. |
+| `session-ui-package.json` | `packages/session-ui/package.json` | Exports `./capri`. |
+| `session-ui-message-content.tsx` | `packages/session-ui/src/message/message-content.tsx` | Thinking shown as the TUI cipher (`hide.thinking`); reply and message footers say `Capri · 5.5s`, model only with `footer.model`. |
+| `session-ui-markdown.css` | `packages/session-ui/src/components/markdown.css` | Headings, bold, italics, links, list markers, quotes and inline code use the theme's `markdown-*` colors (the CLI palette in the Capri theme). |
+| `session-ui-message-part.css` | `packages/session-ui/src/components/message-part.css` | User bubble takes `--capri-user-bubble-bg/-fg` from the theme when set (Capri: `#ff3885` with black text). |
 
 ## Edits to upstream files that are not copied here
 

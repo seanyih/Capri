@@ -1299,8 +1299,11 @@
   [data-local-session]
   [data-component="user-message"]:not([data-pending])
   [data-slot="user-message-text"] {
-  background: var(--v2-blue-100);
-  color: var(--v2-blue-700);
+  /* Capri: a theme may set --capri-user-bubble-bg/-fg (the Capri theme: acid pink with black text). */
+  --user-message-mention-prefix-color: var(--capri-user-bubble-fg, var(--v2-blue-500));
+
+  background: var(--capri-user-bubble-bg, var(--v2-blue-100));
+  color: var(--capri-user-bubble-fg, var(--v2-blue-700));
 }
 
 :root[data-color-scheme="dark"]
@@ -1308,8 +1311,10 @@
   [data-local-session]
   [data-component="user-message"]:not([data-pending])
   [data-slot="user-message-text"] {
-  background: var(--v2-blue-1200);
-  color: var(--v2-blue-300);
+  --user-message-mention-prefix-color: var(--capri-user-bubble-fg, var(--v2-blue-500));
+
+  background: var(--capri-user-bubble-bg, var(--v2-blue-1200));
+  color: var(--capri-user-bubble-fg, var(--v2-blue-300));
 }
 
 /* Only delivery animates. A steer can render once before its admission marks it pending, and must not fade from the

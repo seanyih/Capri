@@ -1,0 +1,33 @@
+[data-component="first-launch-splash"] path {
+  /* Outline paths use a normalized length so the drawing scales with the wordmark. */
+  stroke-dasharray: 1;
+  /* Capri: the letters draw in pink, then fill in. */
+  animation: first-launch-wordmark-draw 1400ms ease-out both;
+}
+
+[data-component="first-launch-splash"][data-drawing="pending"] path {
+  animation-play-state: paused;
+}
+
+@keyframes first-launch-wordmark-draw {
+  from {
+    stroke-dashoffset: 1;
+    fill-opacity: 0;
+  }
+  70% {
+    stroke-dashoffset: 0;
+    fill-opacity: 0;
+  }
+  to {
+    stroke-dashoffset: 0;
+    fill-opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-component="first-launch-splash"] path {
+    animation: none;
+    stroke-dasharray: none;
+    fill-opacity: 1;
+  }
+}

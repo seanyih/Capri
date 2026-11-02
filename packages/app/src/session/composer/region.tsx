@@ -1,3 +1,4 @@
+import { useCapriCommands } from "@/capri/commands"
 import type { SessionUserActions } from "@opencode/session-ui/message"
 import { getFilename, sameDirectory } from "@opencode/util/path"
 import { useDialog } from "@opencode/ui/context/dialog"
@@ -246,6 +247,16 @@ export function createActiveSessionRegion(input: {
   }
 
   useComposerCommands()
+  // Capri: /cyberpsycosis, /soulkiller, /chrome, /nightcity, /quickhacks, /cd moon; feeds the glitch its context use.
+  useCapriCommands({
+    focusInput: focus,
+    messages: () => {
+      const sessionID = input.session.identity.params.id
+
+      return sessionID ? data.session.message.list(sessionID) : []
+    },
+    contextLimit: () => controls().model.selection.current()?.limit.context,
+  })
   useSessionCommands({
     session: input.session,
     region: input.region,

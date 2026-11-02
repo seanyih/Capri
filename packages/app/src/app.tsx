@@ -1,3 +1,4 @@
+import { CapriGlitch } from "@/capri/glitch"
 import "@/index.css"
 import { DialogProvider } from "@opencode/ui/context/dialog"
 import { FileComponentProvider } from "@opencode/ui/context/file"
@@ -99,6 +100,8 @@ export function AppInterface(props: {
         <BodyTypography />
         <CommandProvider>
           <DesktopCommands />
+          {/* Capri: cyberpsychosis screen glitch over the whole window. */}
+          <CapriGlitch />
           {props.children}
           {rootProps.children}
         </CommandProvider>

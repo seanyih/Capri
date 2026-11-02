@@ -7,4 +7,8 @@ export type ElectronNative = {
   storageSnapshot: Promise<StorageSnapshot>
   extensions: Promise<WindowSnapshot["extensions"]>
   getPathForFile(file: File): string
+  capri: {
+    read(): Promise<unknown>
+    setCyberpsycosis(level: string): Promise<unknown>
+  }
 }

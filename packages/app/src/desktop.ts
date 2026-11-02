@@ -21,3 +21,6 @@ export { createNamespaceStorage, type NamespaceStorage } from "./runtime/persist
 export { flushPersisted } from "./runtime/persistence/persist"
 
 export { useExtensionServers } from "./runtime/extension/servers"
+
+// Capri: the desktop renderer hands the capri.json bridge to the shared settings store.
+export { connectCapri } from "@opencode/session-ui/capri"

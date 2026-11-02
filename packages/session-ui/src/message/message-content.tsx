@@ -28,6 +28,7 @@ import { Button } from "@opencode/ui/button"
 import { TextReveal } from "@opencode/ui/text-reveal"
 import { TextShimmer } from "@opencode/ui/text-shimmer"
 import { BasicTool } from "../components/basic-tool"
+import { agentLabel, capri, encrypt } from "../capri"
 import { reasoningHeading } from "../timeline/projection"
 import { Card } from "@opencode/ui/card"
 import type {
@@ -294,7 +295,8 @@ export function CurrentUserMessageDisplay(props: {
 
     if (mobile()) return pendingLabel
 
-    return [pendingLabel, agent ? agent[0]?.toUpperCase() + agent.slice(1) : "", model()]
+    // Capri: the build agent reads as Capri (footer.name); the model only shows with footer.model.
+    return [pendingLabel, agentLabel(agent), capri().footer.model ? model() : ""]
       .filter(Boolean)
       .join("\u00A0\u00B7\u00A0")
   })
@@ -717,7 +719,8 @@ export function AssistantTextContent(props: {
     const agent = props.message.agent
 
     return [
-      ...(mobile() ? [] : [agent ? agent[0]?.toUpperCase() + agent.slice(1) : "", model()]),
+      // Capri: `Capri · 5.5s` like the TUI footer; footer.model brings the model back.
+      ...(mobile() ? [] : [agentLabel(agent), capri().footer.model ? model() : ""]),
       duration(),
       interrupted() ? i18n.t("ui.message.interrupted") : "",
     ]
@@ -772,7 +775,15 @@ export function AssistantReasoningContent(props: {
   const i18n = useI18n()
   const [state, setState] = createStore<{ open?: boolean }>({})
   const open = () => props.open ?? state.open ?? props.defaultOpen ?? false
-  const heading = createMemo(() => (props.streaming ? reasoningHeading(props.content.text) : ""))
+  // Capri: hide.thinking (default on) shows the reasoning as the TUI's glyph cipher, heading included.
+  const text = createMemo(() =>
+    capri().hide.thinking ? encrypt(props.content.text.replace("[REDACTED]", "").trim()) : props.content.text,
+  )
+  const heading = createMemo(() => {
+    if (!props.streaming) return ""
+    const value = reasoningHeading(props.content.text)
+    return value && capri().hide.thinking ? encrypt(value) : value
+  })
 
   const duration = createMemo(() => {
     const time = props.content.time
@@ -829,7 +840,7 @@ export function AssistantReasoningContent(props: {
           </div>
         }
       >
-        <PacedMarkdown text={props.content.text} cacheKey={props.id} streaming={props.streaming} />
+        <PacedMarkdown text={text()} cacheKey={props.id} streaming={props.streaming} />
       </BasicTool>
     </div>
   )

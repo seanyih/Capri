@@ -58,7 +58,7 @@ Note: these were already tracked upstream, so `.gitignore` only hides new/untrac
 - **Color theme**: add a built-in JSON in `packages/tui/src/theme/assets/` (follow existing, e.g. `cursor.json`/`dracula.json`) and register it per `theme/system.ts`/`index.ts`; token rules in `AGENTS.md` (use semantic tokens only). User-level custom themes go in `.opencode/themes/`.
 - **Accent-mocking prompt**: edit/add text in `packages/core/src/plugin/system-prompt/*.txt` (one per model family — a persona must be applied to all) or via `instructions`/agent prompt in `.opencode/agent/`.
 - **Naming/binary**: `packages/cli/package.json` `bin`, `bin/opencode.cjs`, build in `packages/cli/script/build.ts`.
-- **Desktop GUI**: guide in `capri/docs/GUI.md` (build, release workflow `.github/workflows/capri-desktop.yml`, signing, porting TUI features). App icon master `capri/desktop/icon.svg` → `bun capri/desktop/gen-icons.ts`. Package locally with `bunx electron-builder` (not `npx` on WSL). The desktop must bundle a Capri CLI via `OPENCODE_CLI_DIST`, or it ships opencode's.
+- **Desktop GUI**: `capri.json` reaches the renderer via the main process (`packages/desktop/src/main/capri-file.ts` + IPC) into the store `@opencode/session-ui/capri` (`capri()`, `encrypt`, `agentLabel`); Capri commands and the glitch overlay live in `packages/app/src/capri/`. Guide in `capri/docs/GUI.md` (build, release workflow `.github/workflows/capri-desktop.yml`, signing, porting TUI features). App icon master `capri/desktop/icon.svg` → `bun capri/desktop/gen-icons.ts`. Package locally with `bunx electron-builder` (not `npx` on WSL). The desktop must bundle a Capri CLI via `OPENCODE_CLI_DIST`, or it ships opencode's.
 
 ## Workspace
 

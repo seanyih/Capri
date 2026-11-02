@@ -57,7 +57,9 @@ Grab the installer for your system from the [latest release](https://github.com/
 | Linux (x64) | `capri-desktop-linux-x86_64.AppImage`, `.deb` or `.rpm` |
 
 Same Capri inside: persona, cyberpsychosis levels, skills and `capri.json` (same location as the CLI), in a neon
-window with her logo and theme. The screen glitch, scrambled thinking and hidden tool output are TUI-only for now.
+window with her logo and theme. The screen glitch, scrambled thinking, the `Capri · 5.5s` footer and the Cyberpunk
+commands (`/cyberpsycosis`, `/soulkiller`, `/chrome`, `/nightcity`, `/quickhacks`, `/cd moon`) work there too. Hidden
+tool output is TUI-only for now.
 
 The builds are not code-signed (Arasaka keeps the certificates):
 
@@ -113,7 +115,7 @@ Or run straight from source: `bun run dev`.
 
 Humans can only hold so much chrome before the brain gives out. Adjust this based on your compatibility to such a powerful chrome to gain the best experience.
 
-- in the TUI, type `/cyberpsycosis` (that spelling is the command)
+- in the TUI or the desktop app, type `/cyberpsycosis` (that spelling is the command)
 - or set `"cyberpsycosis"` in `capri.json`
 - or for one launch: `CAPRI_CYBERPSYCOSIS=max capri`
 
@@ -254,7 +256,7 @@ Notes:
 
 - A more complete NC knowledge base.
 
-- GUI ports of the TUI chrome: screen glitch, scrambled thinking, hidden tool output, `/cyberpsycosis` picker.
+- Hidden tool output and skill lines in the desktop app.
 
 - VS Code extension.
 

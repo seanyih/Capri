@@ -1,4 +1,10 @@
 import { createUniqueId, type ComponentProps } from "solid-js"
+import { GLYPHS, place } from "../../components/logo"
+
+// Capri: the "Capri" wordmark in one color (currentColor), replacing opencode's. `outline` draws stroked letters with a
+// normalized path length, which the desktop first-launch splash animates (stroke draw, then fill). `fade` keeps the
+// bottom fade-out and `muted` the low opacity of the original component.
+const LETTERS = ["c", "a", "p", "r", "i", "dot"] as const
 
 export function Wordmark(
   props: Pick<ComponentProps<"svg">, "class"> & { fade?: boolean; muted?: boolean; outline?: boolean },
@@ -9,7 +15,7 @@ export function Wordmark(
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 720 129"
+      viewBox="30 15 830 425"
       fill="none"
       classList={{
         [props.class ?? ""]: !!props.class,
@@ -20,50 +26,28 @@ export function Wordmark(
         <g mask={props.fade === false ? undefined : `url(#${mask})`}>
           <g
             opacity={props.muted === false ? 1 : 0.16 * 0.7}
-            fill={props.outline ? "none" : "currentColor"}
+            fill="currentColor"
+            fill-opacity={props.outline ? 0 : undefined}
             stroke={props.outline ? "currentColor" : undefined}
-            stroke-width={props.outline ? 1 : undefined}
+            stroke-width={props.outline ? 2 : undefined}
+            stroke-linejoin="miter"
           >
-            <path
-              pathLength={props.outline ? 1 : undefined}
-              d="M55.3846 36.4286H18.4615V91.7143H55.3846V36.4286ZM73.8462 110.143H0V18H73.8462V110.143Z"
-            />
-            <path
-              pathLength={props.outline ? 1 : undefined}
-              d="M110.462 91.7143H147.385V36.4286H110.462V91.7143ZM165.846 110.143H110.462V128.571H92V18H165.846V110.143Z"
-            />
-            <path
-              pathLength={props.outline ? 1 : undefined}
-              d="M258.846 73.2857H203.462V91.7143H258.846V110.143H185V18H258.846V73.2857ZM203.462 54.8571H240.385V36.4286H203.462V54.8571Z"
-            />
-            <path
-              pathLength={props.outline ? 1 : undefined}
-              d="M332.385 36.4286H295.462V110.143H277V18H332.385V36.4286ZM350.846 110.143H332.385V36.4286H350.846V110.143Z"
-            />
-            <path
-              pathLength={props.outline ? 1 : undefined}
-              d="M442.846 36.4286H387.462V91.7143H442.846V110.143H369V18H442.846V36.4286Z"
-            />
-            <path
-              pathLength={props.outline ? 1 : undefined}
-              d="M517.385 36.4286H480.462V91.7143H517.385V36.4286ZM535.846 110.143H462V18H535.846V110.143Z"
-            />
-            <path
-              pathLength={props.outline ? 1 : undefined}
-              d="M609.385 36.8571H572.462V92.1429H609.385V36.8571ZM627.846 110.571H554V18.4286H609.385V0H627.846V110.571Z"
-            />
-            <path
-              pathLength={props.outline ? 1 : undefined}
-              d="M664.462 36.4286V54.8571H701.385V36.4286H664.462ZM719.846 73.2857H664.462V91.7143H719.846V110.143H646V18H719.846V73.2857Z"
-            />
+            {LETTERS.map((name) => (
+              <path
+                pathLength={props.outline ? 1 : undefined}
+                transform={place(GLYPHS[name].at[0], GLYPHS[name].at[1])}
+                d={GLYPHS[name].d}
+                fill-rule="evenodd"
+              />
+            ))}
           </g>
         </g>
       </g>
       <defs>
-        <mask id={mask} style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="720" height="129">
-          <rect width="720" height="129" fill={`url(#${maskGradient})`} />
+        <mask id={mask} style="mask-type:alpha" maskUnits="userSpaceOnUse" x="30" y="15" width="830" height="425">
+          <rect x="30" y="15" width="830" height="425" fill={`url(#${maskGradient})`} />
         </mask>
-        <linearGradient id={maskGradient} x1="360" y1="68" x2="360" y2="129" gradientUnits="userSpaceOnUse">
+        <linearGradient id={maskGradient} x1="445" y1="240" x2="445" y2="440" gradientUnits="userSpaceOnUse">
           <stop stop-color="white" stop-opacity="0.7" />
           <stop offset="1" stop-color="white" stop-opacity="0" />
         </linearGradient>

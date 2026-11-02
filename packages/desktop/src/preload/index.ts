@@ -29,4 +29,9 @@ contextBridge.exposeInMainWorld("electron", {
   storageSnapshot: snapshot.then((snapshot) => snapshot.storage),
   extensions: snapshot.then((snapshot) => snapshot.extensions),
   getPathForFile: (file: File) => webUtils.getPathForFile(file),
+  // Capri: capri.json, read and written by the main process (src/main/capri.ts).
+  capri: {
+    read: () => ipcRenderer.invoke("capri:read"),
+    setCyberpsycosis: (level: string) => ipcRenderer.invoke("capri:set-cyberpsycosis", level),
+  },
 })

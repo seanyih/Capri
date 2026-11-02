@@ -3,7 +3,7 @@ import { createUniqueId, type ComponentProps } from "solid-js"
 // Capri logo for the GUI, drawn from capri_dev/capri-logo.svg: skewed pink-gradient letters, a purple drop shade,
 // green spike tips and glitch blocks. `mono` paints everything with the icon tokens instead (overlays, masks).
 
-const GLYPHS = {
+export const GLYPHS = {
   c: {
     at: [90, 130],
     d: "M150,0 L40,0 L0,40 L0,140 L120,222 L181.6,115.6 L118,181 L40,128 L40,50 L55,35 L150,35 L205,-85 Z",
@@ -56,7 +56,7 @@ const BLOCKS: Record<"c" | "rest", [number, number, number, string][]> = {
   ],
 }
 
-const place = (x: number, y: number) => `translate(${x},${y}) skewX(-16) scale(1,1.22)`
+export const place = (x: number, y: number) => `translate(${x},${y}) skewX(-16) scale(1,1.22)`
 
 function Art(props: { glyphs: readonly Glyph[]; blocks: readonly ("c" | "rest")[]; mono?: boolean }) {
   const id = `capri-hair-${createUniqueId()}`

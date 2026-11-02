@@ -84,7 +84,7 @@ export function LoadingSplash(props: {
                 outline
                 fade={false}
                 muted={false}
-                class="mx-auto block h-auto w-4/5 text-v2-icon-icon-faint opacity-50"
+                class="mx-auto block h-auto w-1/2 text-v2-text-text-accent"
               />
             </div>
           </div>

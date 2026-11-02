@@ -47,9 +47,11 @@
   }
 
   /* Headings: Sized by level, distinguished by color and spacing */
+  /* Capri: headings, bold, italics, links, list markers, quotes and inline code use the theme's markdown-* colors
+     (the CLI palette in the Capri theme: pink headings, green bold and bullets, light-pink italics, lavender code). */
   h1 {
     font-size: 17px;
-    color: var(--v2-text-text-base);
+    color: var(--markdown-heading);
     font-weight: 600;
     margin-top: 28px;
     margin-bottom: 12px;
@@ -58,7 +60,7 @@
 
   h2 {
     font-size: 15px;
-    color: var(--v2-text-text-base);
+    color: var(--markdown-heading);
     font-weight: 600;
     margin-top: 24px;
     margin-bottom: 10px;
@@ -67,7 +69,7 @@
 
   h3 {
     font-size: 13px;
-    color: var(--v2-text-text-base);
+    color: var(--markdown-heading);
     font-weight: var(--font-weight-medium);
     margin-top: 20px;
     margin-bottom: 8px;
@@ -78,7 +80,7 @@
   h5,
   h6 {
     font-size: 13px;
-    color: var(--v2-text-text-muted);
+    color: var(--markdown-heading);
     font-weight: var(--font-weight-medium);
     margin-top: 20px;
     margin-bottom: 8px;
@@ -88,8 +90,13 @@
   /* Emphasis & Strong: Neutral strong color */
   strong,
   b {
-    color: var(--v2-text-text-base);
+    color: var(--markdown-strong);
     font-weight: var(--font-weight-bold);
+  }
+
+  em,
+  i {
+    color: var(--markdown-emph);
   }
 
   /* Paragraphs */
@@ -99,7 +106,7 @@
 
   /* Links */
   a {
-    color: var(--text-interactive-base);
+    color: var(--markdown-link);
     text-decoration: none;
     font-weight: inherit;
   }
@@ -240,7 +247,11 @@
   }
 
   li::marker {
-    color: var(--v2-text-text-muted);
+    color: var(--markdown-list-item);
+  }
+
+  ol > li::marker {
+    color: var(--markdown-list-enumeration);
   }
 
   /* Nested lists spacing */
@@ -260,7 +271,7 @@
     border-inline-start: 0.5px solid var(--v2-border-border-base);
     margin: 1rem 0;
     padding-inline-start: 0.5rem;
-    color: var(--v2-text-text-muted);
+    color: var(--markdown-block-quote);
     font-style: normal;
   }
 
@@ -372,11 +383,11 @@
     unicode-bidi: isolate;
     font-family: var(--font-family-mono);
     font-feature-settings: var(--font-family-mono--font-feature-settings);
-    color: var(--v2-text-text-base);
+    color: var(--markdown-code);
     font-weight: var(--font-weight-medium);
     padding: 0 4px;
     border-radius: 4px;
-    background: color-mix(in oklch, var(--v2-text-text-base) var(--markdown-inline-code-bg-mix), transparent);
+    background: color-mix(in oklch, var(--markdown-code) var(--markdown-inline-code-bg-mix), transparent);
   }
 
   :not(pre) > code[data-inline-code-kind="path"] {

@@ -10,17 +10,22 @@ opencode's desktop app is three layers. Capri changes each one in a different pl
 | Layer | Package | What it does | Where Capri hooks in |
 |---|---|---|---|
 | Shell | `packages/desktop` | Electron main process: windows, menus, installers, bundled CLI | app identity, icons, window titles, packaging |
-| Renderer | `packages/app` + `packages/ui` + `packages/session-ui` | SolidJS UI in the window | theme, logo, wordmark, strings |
+| Renderer | `packages/app` + `packages/ui` + `packages/session-ui` | SolidJS UI in the window | theme, logo, wordmark, strings, thinking cipher, footer, Capri commands, glitch |
 | Agent | the bundled `capri` CLI (`packages/cli` → `resources/opencode-cli`) | `serve --service` background server: sessions, tools, prompts | **nothing GUI-specific**: the persona and cyberpsychosis prompts live in `packages/core` and come along with the CLI |
 
 So the persona, `/cyberpsycosis` levels (set in `capri.json`), skills and everything in `packages/core` already work in
-the GUI, as long as the desktop bundles a **Capri** CLI and not opencode's (see 3.2). The TUI-only features (glitch,
-masked thinking, hidden tool output, slash aliases, half-block logo) need a GUI port; see section 5.
+the GUI, as long as the desktop bundles a **Capri** CLI and not opencode's (see 3.2). The TUI chrome has its own GUI
+port (section 2); what is still TUI-only is listed in 5.3.
+
+`capri.json` reaches the GUI through the desktop **main process**: `src/main/capri-file.ts` reads and edits the file,
+`src/main/capri.ts` answers IPC, the preload exposes `window.electron.capri`, and `src/renderer/index.tsx` hands it to
+the shared store `@opencode/session-ui/capri` (`connectCapri`). Every GUI package reads settings from that store. The
+store loads once at startup (restart to apply edits made outside the app); `/cyberpsycosis` updates it at once.
 
 `packages/gui-extensions` holds built-in GUI features (updater, terminal, review, browser...). Capri turns its updater
 off.
 
-## 2. What v0.2.0 changes
+## 2. What the GUI port changes
 
 All files are tracked in `capri/` (see `capri/README.md` for the full table) and copied by `capri/sync.sh`.
 
@@ -36,6 +41,13 @@ All files are tracked in `capri/` (see `capri/README.md` for the full table) and
 | CLI | A supplied CLI (`OPENCODE_CLI_DIST`) is used on every channel, and a `--single` build without `-baseline` is accepted. | `desktop-prebuild.ts`, `desktop-utils.ts` |
 | Installer | `install` also runs on macOS (used by the desktop "Install CLI…" menu, and for `capri-darwin-*.tar.gz`). | `install/install.sh` |
 | CI | `.github/workflows/capri-desktop.yml` builds everything on a `v*` tag and uploads it to a draft release. | `ci/capri-desktop.yml` |
+| Opening animation | The first-launch splash draws the Capri wordmark in pink, then fills it. `Wordmark` is Capri's everywhere. | `logo/gui-wordmark.tsx`, `desktop-splash.tsx/.css` |
+| `capri.json` | Read by the main process and shared with the renderer (see section 1). | `config/desktop-capri-*.ts`, `config/gui-capri.ts`, `desktop-preload-*.ts`, `desktop-renderer-index.tsx`, `app-desktop.ts` |
+| Thinking | `hide.thinking` (default on) shows reasoning, and its streaming heading, as the TUI's glyph cipher. | `session-ui-message-content.tsx` |
+| Footer | Replies and messages say `Capri · 5.5s`; `footer.name` renames, `footer.model` brings the model back. | `session-ui-message-content.tsx` |
+| Commands | `/cyberpsycosis` (picker, writes `capri.json`; the CLI uses the new prompt from the next turn), `/soulkiller`, `/chrome`, `/nightcity`, `/quickhacks`, `/cd moon`. | `glitch/gui-commands.tsx`, `app-session-composer-region.tsx`, `app-new-session-screen.tsx` |
+| Glitch | Click-through overlay with the TUI engine's rates: blocks and torn rows at `low`+, scaled by context use and `glitchProbability`. `CAPRI_GLITCH_CONTEXT=1` fakes a full context. | `glitch/gui-glitch*.ts(x)`, `app-app.tsx` |
+| Colors | User bubble `#ff3885` with black text; markdown uses the CLI palette (pink headings, green bold/bullets/links, pink italics, lavender code). | `session-ui-message-part.css`, `session-ui-markdown.css`, `theme/capri-desktop-theme.json` |
 
 ## 3. Build locally
 
@@ -131,20 +143,29 @@ Without secrets the builds work but are unsigned:
    `packages/ui`, `packages/gui-extensions`). Run tests from the package dir, never from the root.
 5. Check it in the real app: `bun dev` in `packages/desktop`, or package with `--linux dir` and launch
    `dist/linux-unpacked/io.github.seanyih.capri`. For screenshots without touching your real data, launch it with
-   `HOME` and `XDG_*_HOME` pointed at a scratch folder.
+   `HOME` and `XDG_*_HOME` pointed at a scratch folder. If your own Capri desktop is running, its background service
+   holds the fixed service port, so give the scratch copy another one: `{"port": 51234}` in
+   `<scratch>/.config/opencode/service.json`. Add `--remote-debugging-port=9333` to drive or screenshot it over CDP.
 
-### 5.2 Ported features: a map
+### 5.2 How to add the next Capri feature
 
-| TUI feature | GUI equivalent to build | Where to start |
+- **A new `capri.json` option**: add it to `normalize` and `Settings` in `capri/config/gui-capri.ts` (with the TUI's
+  default, see `capri/config/capri-config.ts`), then read `capri()` wherever it is needed. The main process passes the
+  whole file through, so it needs no change unless the option must be **written** from the GUI (add a channel next to
+  `capri:set-cyberpsycosis` in `desktop-capri-ipc.ts` and `desktop-preload-index.ts`).
+- **A new command**: add an entry in `capri/glitch/gui-commands.tsx`. `slash` puts it in the `/` list, `slashArguments`
+  passes the rest of the line to `onSelect`. Session-only commands go in the `input.messages` branch.
+- **A new color**: put it in `theme/capri-desktop-theme.json`. A component that must look different only under Capri
+  reads a `--capri-*` variable with the upstream value as fallback (see the user bubble in `session-ui-message-part.css`):
+  theme `v2Overrides` keys become CSS variables as-is.
+
+| TUI feature still to port | GUI equivalent to build | Where to start |
 |---|---|---|
-| `capri.json` options | Read the same file in the **main process** (`packages/desktop/src/main`), like `packages/tui/src/capri-config.ts`, and send it to the renderer over IPC (`src/main/ipc-handlers/*`, composed in `src/main/ipc.ts`; renderer side via `window.electron` / `src/renderer/api.ts`). Expose it to `packages/app` through the platform context. Alternative: add a server endpoint in `packages/server` so the web UI gets it too. | `capri/config/capri-config.ts` (shape), `packages/desktop/src/preload` |
-| `hide.thinking` (scrambled reasoning) | Reasoning parts render in `packages/session-ui`. Reuse `encrypt` from `capri/upstream/message-parts.tsx` on the reasoning text before it reaches `Markdown`. | `packages/session-ui/src/message/message-content.tsx`, `src/timeline/*` |
-| `hide.toolResults` | Tool cards render in `packages/session-ui/src/tools/tool-renderer.tsx` (outputs, diffs). Drop the output body and diff views when the option is on, keep the one-line header. | `tool-renderer.tsx` |
-| `hide.skills` | Filter skill-load tool rows in the timeline. | `packages/session-ui/src/timeline/timeline-row.ts` |
-| `footer.name` = "Capri" | The agent label next to the model in the prompt dock / message footer. | `packages/app/src/session/*`, search for agent name rendering |
-| Screen glitch (`low`+) | A CSS/canvas overlay, mounted once in the app shell, driven by the cyberpsychosis level and context use. Port the rates and shapes from `capri/glitch/glitch.ts` (pure logic, no OpenTUI) and draw with absolutely positioned divs or a `<canvas>` with `pointer-events: none`. Respect `prefers-reduced-motion`. | `packages/app/src/shell/*`, `capri/glitch/glitch.ts` |
-| `/cyberpsycosis` picker | A command-palette entry + settings row that writes `capri.json` (main process) via IPC, mirroring `capri/glitch/dialog-cyberpsycosis.tsx` and `packages/core/src/capri.ts`. | `packages/app/src/shell/commands/*`, `packages/app/src/settings/*` |
-| Slash aliases (`/chrome`, `/nightcity`, `/soulkiller`, `/quickhacks`) | The GUI prompt has its own `/` command list. | `packages/app/src/session/commands/use-session-commands.tsx`, `packages/app/src/session/composer/*` |
+| `hide.toolResults` | Tool cards render in `packages/session-ui/src/tools/tool-renderer.tsx` (outputs, diffs). Drop the output body and diff views when `capri().hide.toolResults`, keep the one-line header. | `tool-renderer.tsx` |
+| `hide.skills` | Filter skill-load tool rows in the timeline when `capri().hide.skills`. | `packages/session-ui/src/timeline/*` |
+| `footer.tps` | Tokens per second next to the duration in the reply footer. | `session-ui-message-content.tsx` |
+| `/quickhacks` as its own list | Today it opens the composer's `@` list, which mixes skills with agents and files. A dialog listing only `data.location.skill.list()` that inserts the picked skill as a mention would match the TUI better. | `packages/app/src/composer/model.ts` (skill mentions) |
+| `/cyberpsycosis` in Settings | A settings row next to the theme picker, calling `setCyberpsycosis`. | `packages/app/src/settings/appearance/*` |
 | Remaining "OpenCode" strings | `packages/app/src/runtime/i18n/en.ts` (only English is changed; other locales fall back to their own text). Leave provider names ("OpenCode Zen/Go/Console") alone: they are real services. | `en.ts`, `desktop-native.ts` |
 
 ### 5.3 Known gaps (worth fixing next)
@@ -163,6 +184,9 @@ Without secrets the builds work but are unsigned:
   the CLI targets `opencode-windows-arm64`, `opencode-linux-arm64`.
 - **Help menu** still links opencode's docs and Discord (they are the docs for everything below the persona).
 - Tauri-era `icons/*/android` and `icons/*/ios` folders still hold opencode art; Electron never uses them.
+- The web build (`packages/app` in a browser) has no `capri.json` bridge: it uses the TUI defaults, and
+  `/cyberpsycosis` is disabled there.
+- The glitch's torn rows tint and hue-shift a strip of the window; unlike the TUI they do not move the text sideways.
 
 ### 5.4 After merging upstream opencode
 

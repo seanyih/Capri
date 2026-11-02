@@ -6,6 +6,7 @@ import { useSearchParams } from "@solidjs/router"
 import { createEffect, createMemo, createResource, on, untrack } from "solid-js"
 import { createComposerModel } from "@/composer/model"
 import { useComposerCommands } from "@/composer/commands"
+import { useCapriCommands } from "@/capri/commands"
 import { createNewSessionComposerAdapter } from "./composer-adapter"
 import { NewSessionView } from "./view"
 import { createNewSessionWorkspaceController } from "./workspace/controller"
@@ -59,6 +60,8 @@ export default function NewSessionPage(props: { draftId: string }) {
 
   const model = createComposerModel(composer.adapter)
   useComposerCommands({ model: composer.model })
+  // Capri: /cyberpsycosis, /chrome, /nightcity, /quickhacks, /cd moon (no session yet, so no /soulkiller).
+  useCapriCommands()
 
   const project = createPromptProjectController({
     controls: composer.project,

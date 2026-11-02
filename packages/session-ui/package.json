@@ -6,6 +6,7 @@
   "license": "MIT",
   "exports": {
     "./actions": "./src/actions.ts",
+    "./capri": "./src/capri.ts",
     "./document": "./src/document.ts",
     "./message": "./src/message/current-message.tsx",
     "./timeline/projection": "./src/timeline/projection.ts",
